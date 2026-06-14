@@ -21,13 +21,20 @@ Previous Score
 Optimized Score
 78/100
 What was changed and why it raised the score:
-1.Added a Professional Summary — ATS systems rank resumes higher when they open with a keyword-rich summary paragraph; the original had none.
-2.Expanded bullet points with action verbs — Replaced vague descriptors ("Participating in…", "Learning…") with impact-oriented verbs like Completed, Documented, Applied, Demonstrated — these are what ATS and recruiters scan for.
-3.Restructured Skills into categorized lines — ATS keyword parsers match skills by proximity to category labels; grouping under "AI & Prompt Engineering", "Developer Tools", and "Foundations" dramatically improves keyword hit rate.
-4.Removed icons, symbols, and stylized formatting — The original resume format (if submitted as a designed file) would cause ATS parsers to garble text; plain single-column structure ensures 100% parseability.
-5.Added GitHub URL as a scannable link — Recruiters and ATS systems for tech roles treat public repo links as a signal of real-world output; it's now prominently placed.
-6.Split Education into clean role/institution/date lines — ATS date parsers require consistent formatting (Institution | Year) to correctly extract graduation timelines.
-7.Eliminated filler phrases — Phrases like "strong interest in" and "passionate about" add no keyword value; replaced with concrete evidence of learning and delivery.
+1.Added a Professional Summary
+ — ATS systems rank resumes higher when they open with a keyword-rich summary paragraph; the original had none.
+2.Expanded bullet points with action verbs
+ — Replaced vague descriptors ("Participating in…", "Learning…") with impact-oriented verbs like Completed, Documented, Applied, Demonstrated — these are what ATS and recruiters scan for.
+3.Restructured Skills into categorized lines
+ — ATS keyword parsers match skills by proximity to category labels; grouping under "AI & Prompt Engineering", "Developer Tools", and "Foundations" dramatically improves keyword hit rate.
+4.Removed icons, symbols, and stylized formatting
+ — The original resume format (if submitted as a designed file) would cause ATS parsers to garble text; plain single-column structure ensures 100% parseability.
+5.Added GitHub URL as a scannable link
+ — Recruiters and ATS systems for tech roles treat public repo links as a signal of real-world output; it's now prominently placed.
+6.Split Education into clean role/institution/date lines
+ — ATS date parsers require consistent formatting (Institution | Year) to correctly extract graduation timelines.
+7.Eliminated filler phrases 
+— Phrases like "strong interest in" and "passionate about" add no keyword value; replaced with concrete evidence of learning and delivery.
 ---
 
 ## Optimized Resume
