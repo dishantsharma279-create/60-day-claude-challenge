@@ -1,0 +1,70 @@
+# 🧩 Day 35 – Prompt Puzzle: Master AI Prompting Through Play
+
+## 📌 Project
+Prompt Puzzle is an interactive educational game that teaches Prompt Engineering through hands-on challenges. Instead of reading theory, users learn by building, cleaning, and optimizing prompts while receiving instant feedback and performance analysis.
+
+---
+
+## 🚀 Features
+
+- Single-file HTML application
+- Fully Offline
+- Pure HTML, CSS & JavaScript
+- Premium Dark UI
+- Responsive Design
+- Drag & Drop Prompt Builder
+- Click-to-Place Fallback
+- 6 Randomized Prompt Scenarios
+- Three Interactive Challenge Types
+- Live Performance Tracking
+- Prompt Performance Report
+- Prompt DNA Visualization
+- Personalized AI Feedback
+- Replay with Randomized Scenario Order
+
+---
+
+## 🎯 Challenge Types
+
+### 1. Build the Prompt
+Arrange prompt blocks in the correct order.
+
+### 2. Clean the Prompt
+Remove unnecessary prompt blocks and optimize the prompt.
+
+### 3. Choose the Best Prompt
+Compare multiple prompts and identify the most effective one.
+
+---
+
+## 📊 Performance Metrics
+
+- Accuracy
+- Time Taken
+- Moves
+- Wrong Placements
+- Hints Used
+- Optimization Bonus
+- Final Prompt Score
+- Rank (S–D)
+- Prompt DNA Analysis
+
+---
+
+
+
+---
+
+# 💡 Key Learnings
+
+- Learned how strong prompts are structured.
+- Understood the importance of clarity and constraints.
+- Improved prompt optimization techniques.
+- Practiced identifying weak vs optimized prompts.
+- Explored interactive learning using HTML, CSS and JavaScript.
+
+---
+
+# ✅ Outcome
+
+Successfully built and tested an offline Prompt Puzzle application that helps users improve Prompt Engineering skills through gamified learning.
