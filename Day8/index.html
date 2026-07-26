@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌍 Personal Environmental Health Analyzer — Delhi</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #060a12;
+    --surface: #0d1420;
+    --card: #111927;
+    --border: #1a2840;
+    --border2: #1e3050;
+    --cyan: #00d4ff;
+    --cyan2: #00a8cc;
+    --purple: #7b2fff;
+    --green: #00e676;
+    --yellow: #ffd740;
+    --orange: #ff6d00;
+    --red: #ff1744;
+    --darkred: #b71c1c;
+    --text: #dce8f5;
+    --muted: #7a9ab8;
+    --muted2: #3a5a7a;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  .hero {
+    position: relative;
+    padding: 60px 24px 50px;
+    text-align: center;
+    background: linear-gradient(180deg, #0a1628 0%, var(--bg) 100%);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .grid-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(0,212,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+  .glow-orb {
+    position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none;
+    top: -60px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 250px;
+    background: radial-gradient(ellipse, rgba(0,212,255,.12) 0%, rgba(123,47,255,.08) 60%, transparent 100%);
+  }
+  .badge {
+    display: inline-block;
+    border: 1px solid rgba(0,212,255,.3);
+    background: rgba(0,212,255,.07);
+    color: var(--cyan);
+    font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+    padding: 5px 16px; border-radius: 2px; margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: clamp(26px, 5vw, 44px);
+    font-weight: 800; letter-spacing: -.025em;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 55%, var(--purple) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 10px;
+  }
+  .hero-sub {
+    font-size: 14px; color: var(--muted); max-width: 520px;
+    margin: 0 auto 28px; line-height: 1.7;
+  }
+  .stat-pills { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 12px; }
+  .pill {
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--border2);
+    border-radius: 4px; padding: 6px 14px; font-size: 12px; color: var(--muted);
+  }
+  .pill span { color: var(--cyan); margin-right: 6px; }
+  .source-note { font-size: 11px; color: var(--muted2); margin-top: 8px; }
+  .source-note a { color: var(--cyan2); text-decoration: none; }
+
+  /* ── NAV TABS ── */
+  .nav { position: sticky; top: 0; z-index: 100; background: rgba(6,10,18,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; overflow-x: auto; scrollbar-width: none; }
+  .nav-inner::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; padding: 14px 20px; font-size: 13px; cursor: pointer;
+    color: var(--muted); border-bottom: 2px solid transparent;
+    transition: all .2s; white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--cyan); border-bottom-color: var(--cyan); }
+
+  /* ── MAIN ── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 32px 20px 80px; }
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ── SECTION HEADER ── */
+  .sec-head { margin-bottom: 28px; }
+  .sec-head h2 { font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+  .sec-head p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+  /* ── GRID HELPERS ── */
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+  .grid4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .card:hover { border-color: rgba(0,212,255,.3); box-shadow: 0 0 20px rgba(0,212,255,.06); }
+
+  .metric-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px;
+    position: relative; overflow: hidden;
+  }
+  .metric-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted2); margin-bottom: 8px; }
+  .metric-card .value { font-size: 32px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
+  .metric-card .sub { font-size: 13px; color: var(--muted); }
+  .metric-card .accent-line {
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  }
+
+  /* ── CHART CARD ── */
+  .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 24px; }
+  .chart-card h3 { font-size: 14px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+  .chart-card .ch-sub { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .chart-wrap { position: relative; height: 260px; }
+
+  /* ── AQI BADGE ── */
+  .aqi-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+    letter-spacing: .06em; text-transform: uppercase;
+  }
+  .aqi-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ── RISK INDICATOR ── */
+  .risk { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .risk-label { font-size: 13px; color: var(--muted); flex: 1; }
+  .risk-val { font-size: 13px; font-weight: 600; }
+  .risk-bar-wrap { width: 80px; height: 6px; background: rgba(255,255,255,.07); border-radius: 3px; }
+  .risk-bar { height: 100%; border-radius: 3px; transition: width .8s ease; }
+
+  /* ── FILTER BAR ── */
+  .filter-bar {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 4px; }
+  .filter-group label { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted2); }
+  .filter-group select, .filter-group input[type=range] {
+    background: rgba(255,255,255,.05);
+    border: 1px solid var(--border2); color: var(--text);
+    padding: 6px 10px; border-radius: 5px; font-size: 13px; font-family: var(--font);
+    outline: none; cursor: pointer;
+  }
+  .filter-group select:focus { border-color: var(--cyan2); }
+  input[type=range] { accent-color: var(--cyan); width: 140px; padding: 0; }
+
+  /* ── GRADE CARD ── */
+  .grade-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; text-align: center;
+    transition: all .2s;
+  }
+  .grade-card:hover { border-color: rgba(0,212,255,.3); }
+  .grade { font-size: 52px; font-weight: 900; line-height: 1; margin-bottom: 6px; }
+  .grade-label { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+
+  /* ── SCORE RING ── */
+  .ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .ring { position: relative; width: 120px; height: 120px; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring-val { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring-val .num { font-size: 28px; font-weight: 800; }
+  .ring-val .rlab { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+
+  /* ── INSIGHT PILL ── */
+  .insight { display: flex; gap: 12px; align-items: flex-start; padding: 14px; background: rgba(255,255,255,.025); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; }
+  .insight-icon { font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+  .insight-body h4 { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 3px; }
+  .insight-body p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── RECOMMENDATION ── */
+  .rec-list { list-style: none; }
+  .rec-list li { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.05); font-size: 13px; color: var(--muted); line-height: 1.5; }
+  .rec-list li:last-child { border-bottom: none; }
+  .rec-list li::before { content: '›'; color: var(--cyan); font-weight: 700; flex-shrink: 0; }
+
+  /* ── CITY TABLE ── */
+  .city-table { width: 100%; border-collapse: collapse; }
+  .city-table th { font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted2); text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); }
+  .city-table td { padding: 12px 14px; font-size: 13px; color: var(--text); border-bottom: 1px solid rgba(255,255,255,.04); }
+  .city-table tr:hover td { background: rgba(255,255,255,.02); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .hero { padding: 40px 16px 36px; }
+    .main { padding: 20px 14px 60px; }
+    .tab { padding: 12px 14px; font-size: 12px; }
+    .filter-bar { flex-direction: column; align-items: flex-start; }
+    .grid4 { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp .4s ease both; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; margin-right: 6px; }
+
+  /* AQI COLOURS */
+  .aqi-good { color: #00e676; }
+  .aqi-sat  { color: #a5d6a7; }
+  .aqi-mod  { color: #ffd740; }
+  .aqi-poor { color: #ff9100; }
+  .aqi-vpoor{ color: #ff1744; }
+  .aqi-sev  { color: #b71c1c; }
+  .bg-good  { background: rgba(0,230,118,.12);  border-color: rgba(0,230,118,.3); }
+  .bg-sat   { background: rgba(165,214,167,.1);  border-color: rgba(165,214,167,.3); }
+  .bg-mod   { background: rgba(255,215,64,.1);  border-color: rgba(255,215,64,.3); }
+  .bg-poor  { background: rgba(255,145,0,.1);   border-color: rgba(255,145,0,.3); }
+  .bg-vpoor { background: rgba(255,23,68,.1);   border-color: rgba(255,23,68,.3); }
+  .bg-sev   { background: rgba(183,28,28,.15);  border-color: rgba(183,28,28,.4); }
+
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="grid-bg"></div>
+  <div class="glow-orb"></div>
+  <div style="position:relative; z-index:1;">
+    <div class="badge">🌍 Environmental Health Analyzer · Live Data</div>
+    <h1>Personal Environmental Health Report</h1>
+    <p class="hero-sub"><span class="live-dot"></span>Real-time air &amp; water quality analysis for <strong style="color:var(--cyan)">Delhi, India</strong> — personalized health impact, risk scores &amp; actionable recommendations.</p>
+    <div class="stat-pills">
+      <div class="pill"><span>Location</span>Delhi, IN</div>
+      <div class="pill"><span>AQI (Today)</span>91 — Satisfactory</div>
+      <div class="pill"><span>PM2.5</span>41 µg/m³</div>
+      <div class="pill"><span>Water TDS</span>400–600 ppm</div>
+      <div class="pill"><span>Cities Analyzed</span>8</div>
+      <div class="pill"><span>Updated</span>June 16, 2026</div>
+    </div>
+    <p class="source-note">Sources: <a href="https://aqicn.org/city/delhi/" target="_blank">AQICN</a> · <a href="https://www.aqi.in/in/dashboard/india" target="_blank">AQI.in</a> · <a href="https://aqitracker.com/delhi-aqi/" target="_blank">AQITracker</a> · <a href="https://alloroots.com/hard-water-hair-loss-india/" target="_blank">Alloroots</a> · CPCB India</p>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner" id="navTabs">
+    <div class="tab active" data-tab="overview">📊 Overview</div>
+    <div class="tab" data-tab="charts">📈 Charts</div>
+    <div class="tab" data-tab="cities">🏙 City Cards</div>
+    <div class="tab" data-tab="health">🫁 Health Impact</div>
+    <div class="tab" data-tab="report">📋 Report Card</div>
+    <div class="tab" data-tab="insights">💡 Insights</div>
+    <div class="tab" data-tab="recs">🛡 Recommendations</div>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- ══════════════════════ OVERVIEW ══════════════════════ -->
+  <div class="section active fade-up" id="sec-overview">
+    <div class="sec-head">
+      <h2>Key Metrics — Delhi Air &amp; Environment</h2>
+      <p>Live snapshot across 8 major Indian cities. Delhi is your baseline city. All AQI values use CPCB (India) standard.</p>
+    </div>
+
+    <!-- KPI row -->
+    <div class="grid4" style="margin-bottom:20px">
+      <div class="metric-card">
+        <div class="accent-line" style="background:linear-gradient(90deg,var(--cyan),var(--purple))"></div>
+        <div class="label">Avg AQI (8 Cities)</div>
+        <div class="value aqi-poor">87</div>
+        <div class="sub">Moderate–Poor Range</div>
+      </div>
+      <div class="metric-card">
+        <div class="accent-line" style="background:linear-gradient(90deg,var(--red),#ff6d00)"></div>
+        <div class="label">Highest AQI City</div>
+        <div class="value aqi-vpoor" id="kpiHighCity">Kolkata</div>
+        <div class="sub aqi-vpoor">AQI 116</div>
+      </div>
+      <div class="metric-card">
+        <div class="accent-line" style="background:linear-gradient(90deg,var(--green),#00c853)"></div>
+        <div class="label">Lowest AQI City</div>
+        <div class="value aqi-good" id="kpiLowCity">Mumbai</div>
+        <div class="sub aqi-good">AQI 52</div>
+      </div>
+      <div class="metric-card">
+        <div class="accent-line" style="background:linear-gradient(90deg,var(--yellow),#ff9100)"></div>
+        <div class="label">Delhi Env. Score</div>
+        <div class="value" style="color:var(--yellow)">44<span style="font-size:16px;color:var(--muted)">/100</span></div>
+        <div class="sub">Below Average</div>
+      </div>
+    </div>
+
+    <div class="grid4" style="margin-bottom:28px">
+      <div class="metric-card">
+        <div class="accent-line" style="background:var(--cyan)"></div>
+        <div class="label">Delhi AQI Today</div>
+        <div class="value aqi-mod">91</div>
+        <div class="sub">Satisfactory (CPCB)</div>
+      </div>
+      <div class="metric-card">
+        <div class="accent-line" style="background:var(--orange)"></div>
+        <div class="label">Delhi PM2.5</div>
+        <div class="value aqi-poor">41</div>
+        <div class="sub">µg/m³ — Elevated</div>
+      </div>
+      <div class="metric-card">
+        <div class="accent-line" style="background:var(--yellow)"></div>
+        <div class="label">Delhi PM10</div>
+        <div class="value aqi-mod">84</div>
+        <div class="sub">µg/m³ — Moderate</div>
+      </div>
+      <div class="metric-card">
+        <div class="accent-line" style="background:var(--red)"></div>
+        <div class="label">Water TDS (Delhi)</div>
+        <div class="value aqi-vpoor">500<span style="font-size:14px">+</span></div>
+        <div class="sub">ppm — Hard Water</div>
+      </div>
+    </div>
+
+    <!-- AQI Category Legend -->
+    <div class="card" style="margin-bottom:20px">
+      <h3 style="font-size:14px;font-weight:600;margin-bottom:16px">AQI Category Scale (CPCB India)</h3>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <div class="aqi-badge bg-good"><div class="aqi-dot" style="background:#00e676"></div><span class="aqi-good">Good</span> 0–50</div>
+        <div class="aqi-badge bg-sat"><div class="aqi-dot" style="background:#a5d6a7"></div><span class="aqi-sat">Satisfactory</span> 51–100</div>
+        <div class="aqi-badge bg-mod"><div class="aqi-dot" style="background:#ffd740"></div><span class="aqi-mod">Moderate</span> 101–200</div>
+        <div class="aqi-badge bg-poor"><div class="aqi-dot" style="background:#ff9100"></div><span class="aqi-poor">Poor</span> 201–300</div>
+        <div class="aqi-badge bg-vpoor"><div class="aqi-dot" style="background:#ff1744"></div><span class="aqi-vpoor">Very Poor</span> 301–400</div>
+        <div class="aqi-badge bg-sev"><div class="aqi-dot" style="background:#b71c1c"></div><span class="aqi-sev">Severe</span> 401+</div>
+      </div>
+    </div>
+
+    <!-- Executive Summary -->
+    <div class="card">
+      <h3 style="font-size:14px;font-weight:600;margin-bottom:12px">📄 Executive Summary</h3>
+      <p style="font-size:14px;color:var(--muted);line-height:1.8">
+        Delhi's current AQI of <strong style="color:var(--yellow)">91 (Satisfactory)</strong> represents a temporary improvement — the 7-day rolling average sits at 143 (Moderate), and the annual average for 2026 is tracking at <strong style="color:var(--orange)">179 (Poor)</strong>. Among 8 major Indian cities analyzed today, <strong style="color:var(--green)">Mumbai</strong> leads as the cleanest (AQI 52) while <strong style="color:var(--red)">Kolkata</strong> is the most polluted (AQI 116). Delhi's water quality compounds the problem: with TDS levels of 400–600 ppm in most areas, residents face <strong style="color:var(--orange)">high hard-water risk</strong> — a leading cause of hair fall, scalp dryness, and skin irritation. The combined Environmental Health Score for Delhi is <strong style="color:var(--yellow)">44/100</strong>, placing it in the "Below Average" category.
+      </p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ CHARTS ══════════════════════ -->
+  <div class="section fade-up" id="sec-charts">
+    <div class="sec-head">
+      <h2>Air Quality Visualizations</h2>
+      <p>Interactive charts comparing AQI, PM2.5, PM10 and pollutant distribution across 8 Indian cities.</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Pollutant View</label>
+        <select id="pollutantSel" onchange="updateCharts()">
+          <option value="aqi">Overall AQI</option>
+          <option value="pm25">PM2.5</option>
+          <option value="pm10">PM10</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>AQI Max Filter: <span id="aqiRangeVal">200</span></label>
+        <input type="range" min="50" max="200" value="200" id="aqiRange" oninput="document.getElementById('aqiRangeVal').textContent=this.value; updateCharts()">
+      </div>
+      <div class="filter-group">
+        <label>Health Risk</label>
+        <select id="riskFilter" onchange="updateCharts()">
+          <option value="all">All</option>
+          <option value="good">Good/Satisfactory</option>
+          <option value="moderate">Moderate</option>
+          <option value="poor">Poor+</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-bottom:20px">
+      <div class="chart-card">
+        <h3>AQI City Comparison</h3>
+        <p class="ch-sub">Today's AQI across major Indian cities (CPCB standard)</p>
+        <div class="chart-wrap"><canvas id="aqiBar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>AQI Distribution</h3>
+        <p class="ch-sub">Cities by AQI health category</p>
+        <div class="chart-wrap"><canvas id="aqiDoughnut"></canvas></div>
+      </div>
+    </div>
+    <div class="grid2" style="margin-bottom:20px">
+      <div class="chart-card">
+        <h3>PM2.5 Comparison</h3>
+        <p class="ch-sub">Fine particulate matter µg/m³ (WHO safe: 15 µg/m³)</p>
+        <div class="chart-wrap"><canvas id="pm25Bar"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>PM10 Comparison</h3>
+        <p class="ch-sub">Coarse particulate matter µg/m³ (WHO safe: 45 µg/m³)</p>
+        <div class="chart-wrap"><canvas id="pm10Bar"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>City Ranking — Environmental Score</h3>
+      <p class="ch-sub">Combined air + water quality score (0–100, higher = healthier)</p>
+      <div class="chart-wrap" style="height:220px"><canvas id="rankBar"></canvas></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ CITY CARDS ══════════════════════ -->
+  <div class="section fade-up" id="sec-cities">
+    <div class="sec-head">
+      <h2>City Detail Cards</h2>
+      <p>Air quality, PM readings, health scores and water quality for 8 major Indian cities.</p>
+    </div>
+
+    <!-- City Selector -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Focus City</label>
+        <select id="cityFocus" onchange="focusCity(this.value)">
+          <option value="all">All Cities</option>
+          <option value="Delhi" selected>Delhi</option>
+          <option value="Mumbai">Mumbai</option>
+          <option value="Bangalore">Bangalore</option>
+          <option value="Chennai">Chennai</option>
+          <option value="Kolkata">Kolkata</option>
+          <option value="Hyderabad">Hyderabad</option>
+          <option value="Pune">Pune</option>
+          <option value="Ahmedabad">Ahmedabad</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Compare Mode</label>
+        <select id="compareMode" onchange="toggleCompare(this.value)">
+          <option value="off">Single View</option>
+          <option value="on">Compare All</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid2" id="cityGrid"></div>
+  </div>
+
+  <!-- ══════════════════════ HEALTH IMPACT ══════════════════════ -->
+  <div class="section fade-up" id="sec-health">
+    <div class="sec-head">
+      <h2>Health Impact Analysis — Delhi</h2>
+      <p>How Delhi's air (AQI 91 today, annual avg 179) and water (TDS 400–600 ppm) affect your body.</p>
+    </div>
+
+    <div class="grid2" style="margin-bottom:20px">
+      <!-- Air impacts -->
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:16px">🫁 Air Quality — Body Impact</h3>
+        <div id="airRisks"></div>
+      </div>
+      <!-- Water impacts -->
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:16px">💧 Water Quality — Hair &amp; Skin</h3>
+        <div id="waterRisks"></div>
+      </div>
+    </div>
+
+    <!-- Detailed explanations -->
+    <div class="grid2">
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:14px">🌬 Air Pollution Deep Dive</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:12px">At Delhi's annual average AQI of <strong style="color:var(--orange)">179 (Moderate-Poor)</strong>, PM2.5 particles (≤2.5 µm) penetrate deep into lung tissue, entering the bloodstream. Long-term exposure at this level is associated with a <strong style="color:var(--red)">26% higher risk</strong> of respiratory disease. Even on "good" days like today (AQI 91), PM2.5 at 41 µg/m³ is <strong style="color:var(--yellow)">2.7× WHO's safe limit</strong> of 15 µg/m³.</p>
+        <div class="divider" style="margin:14px 0"></div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7">Winter months (Oct–Jan) push Delhi AQI into <strong style="color:var(--red)">300–500 (Very Poor–Severe)</strong> range due to crop burning, vehicle emissions, and temperature inversions trapping pollutants near the ground.</p>
+      </div>
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:600;margin-bottom:14px">🚿 Hard Water Deep Dive</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:12px">Delhi's water TDS of <strong style="color:var(--red)">400–600 ppm</strong> far exceeds the 200 ppm threshold considered safe for hair washing. Calcium and magnesium ions bind to hair shafts, ruffling cuticles and reducing tensile strength — leading to <strong style="color:var(--orange)">breakage and increased shedding</strong>. Chlorine added for disinfection further strips natural scalp oils.</p>
+        <div class="divider" style="margin:14px 0"></div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7">Studies show hair washed with hard water has <strong style="color:var(--yellow)">4× higher magnesium deposits</strong> and measurably lower tensile strength vs hair washed with softened water. Some outer Delhi areas (Rohini, Chhatarpur) see TDS exceed 1000 ppm from borewell sources.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ REPORT CARD ══════════════════════ -->
+  <div class="section fade-up" id="sec-report">
+    <div class="sec-head">
+      <h2>Environmental Health Report Card</h2>
+      <p>Your personalized score breakdown for Delhi's air and water quality.</p>
+    </div>
+
+    <!-- Score rings -->
+    <div style="display:flex;flex-wrap:wrap;gap:24px;justify-content:center;margin-bottom:32px">
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#cyanGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="174" id="airRing"/>
+            <defs><linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#7b2fff"/></linearGradient></defs>
+          </svg>
+          <div class="ring-val"><div class="num" style="color:var(--yellow)">45</div><div class="rlab">Air</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);text-align:center">Air Quality Score<br><strong style="color:var(--yellow)">Grade: D</strong></div>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#purpGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="204" id="waterRing"/>
+            <defs><linearGradient id="purpGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7b2fff"/><stop offset="100%" stop-color="#ff1744"/></linearGradient></defs>
+          </svg>
+          <div class="ring-val"><div class="num" style="color:var(--orange)">35</div><div class="rlab">Water</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);text-align:center">Water Quality Score<br><strong style="color:var(--orange)">Grade: F</strong></div>
+      </div>
+      <div class="ring-wrap">
+        <div class="ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#overGrad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="176" id="overRing"/>
+            <defs><linearGradient id="overGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#ffd740"/><stop offset="100%" stop-color="#ff9100"/></linearGradient></defs>
+          </svg>
+          <div class="ring-val"><div class="num" style="color:var(--yellow)">44</div><div class="rlab">Overall</div></div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);text-align:center">Environmental Score<br><strong style="color:var(--yellow)">Below Average</strong></div>
+      </div>
+    </div>
+
+    <!-- Grade cards -->
+    <div class="grid4" style="margin-bottom:24px">
+      <div class="grade-card">
+        <div class="grade" style="color:var(--yellow)">D</div>
+        <div class="grade-label">Air Quality</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">AQI 91 today, annual avg 179</p>
+      </div>
+      <div class="grade-card">
+        <div class="grade" style="color:var(--red)">F</div>
+        <div class="grade-label">Water Quality</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">TDS 400–600 ppm, very hard</p>
+      </div>
+      <div class="grade-card">
+        <div class="grade" style="color:var(--red)">🔴</div>
+        <div class="grade-label">Hair Risk</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">High — hard water + pollution</p>
+      </div>
+      <div class="grade-card">
+        <div class="grade" style="color:var(--orange)">🟡</div>
+        <div class="grade-label">Skin Risk</div>
+        <p style="font-size:12px;color:var(--muted);margin-top:6px">Moderate–High — dryness likely</p>
+      </div>
+    </div>
+
+    <!-- Score table -->
+    <div class="card">
+      <h3 style="font-size:14px;font-weight:600;margin-bottom:14px">Score Breakdown</h3>
+      <table class="city-table">
+        <thead>
+          <tr><th>Parameter</th><th>Value</th><th>Score</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>AQI Today</td><td>91 (Satisfactory)</td><td style="color:var(--yellow)">55/100</td><td><span class="tag" style="background:rgba(255,215,64,.12);color:var(--yellow)">Moderate</span></td></tr>
+          <tr><td>Annual Avg AQI</td><td>179 (Poor)</td><td style="color:var(--red)">28/100</td><td><span class="tag" style="background:rgba(255,23,68,.12);color:var(--red)">Poor</span></td></tr>
+          <tr><td>PM2.5</td><td>41 µg/m³</td><td style="color:var(--orange)">40/100</td><td><span class="tag" style="background:rgba(255,109,0,.12);color:var(--orange)">Elevated</span></td></tr>
+          <tr><td>PM10</td><td>84 µg/m³</td><td style="color:var(--yellow)">48/100</td><td><span class="tag" style="background:rgba(255,215,64,.12);color:var(--yellow)">Moderate</span></td></tr>
+          <tr><td>Water TDS</td><td>400–600 ppm</td><td style="color:var(--red)">22/100</td><td><span class="tag" style="background:rgba(255,23,68,.12);color:var(--red)">Very Hard</span></td></tr>
+          <tr><td>Water Hardness</td><td>Very High (>250 ppm)</td><td style="color:var(--red)">20/100</td><td><span class="tag" style="background:rgba(183,28,28,.2);color:#ff5555">Critical</span></td></tr>
+          <tr><td><strong>Overall Env Score</strong></td><td></td><td style="color:var(--yellow);font-weight:700">44/100</td><td><span class="tag" style="background:rgba(255,215,64,.12);color:var(--yellow)">Below Average</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ INSIGHTS ══════════════════════ -->
+  <div class="section fade-up" id="sec-insights">
+    <div class="sec-head">
+      <h2>Insights Panel</h2>
+      <p>Key findings, anomalies, and surprising observations from today's multi-city data.</p>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <h3 style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:14px">🌿 Top 3 Cleanest Cities</h3>
+          <div class="insight">
+            <div class="insight-icon">🥇</div>
+            <div class="insight-body"><h4>Mumbai — AQI 52</h4><p>Coastal location, sea breeze, and lower vehicle density vs Delhi. PM2.5 at just 18 µg/m³. Water TDS moderate (200–350 ppm).</p></div>
+          </div>
+          <div class="insight">
+            <div class="insight-icon">🥈</div>
+            <div class="insight-body"><h4>Pune — AQI 60</h4><p>High altitude advantage (560m), less industrial density. Monsoon-influenced rainfall helps wash pollutants.</p></div>
+          </div>
+          <div class="insight">
+            <div class="insight-icon">🥉</div>
+            <div class="insight-body"><h4>Ahmedabad — AQI 60</h4><p>AQI tied with Pune. Relatively low PM2.5 at 22 µg/m³ today, though industrial zones elevate annual average.</p></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:14px">🏭 Top 3 Most Polluted Cities</h3>
+          <div class="insight">
+            <div class="insight-icon">💨</div>
+            <div class="insight-body"><h4>Kolkata — AQI 116</h4><p>Today's most polluted city. Dense industrial activity, port traffic, and high humidity trapping particulates.</p></div>
+          </div>
+          <div class="insight">
+            <div class="insight-icon">🌫</div>
+            <div class="insight-body"><h4>Chennai — AQI 81</h4><p>PM10 elevated from coastal dust and construction. Summer heat accelerates ground-level ozone formation.</p></div>
+          </div>
+          <div class="insight">
+            <div class="insight-icon">🚗</div>
+            <div class="insight-body"><h4>New Delhi — AQI 80</h4><p>Annual average (179) far more concerning than today's reading. Vehicle emissions + construction = chronic burden.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <h3 style="font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:14px">⚡ Biggest Anomaly</h3>
+          <div class="insight">
+            <div class="insight-icon">📉</div>
+            <div class="insight-body">
+              <h4>Delhi Today vs Annual Average Gap</h4>
+              <p>Today's AQI of 91 is <strong style="color:var(--green)">52 points lower</strong> than the 7-day average (143) and <strong style="color:var(--green)">88 points below</strong> the annual average (179). This is a misleading improvement — seasonal pattern. Delhi regularly bounces between "Satisfactory" in June and "Severe" in December. Don't be fooled by today's reading.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <h3 style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:14px">😮 Most Surprising Observation</h3>
+          <div class="insight">
+            <div class="insight-icon">💧</div>
+            <div class="insight-body">
+              <h4>Water Risk Outweighs Air Risk in Summer</h4>
+              <p>In June, when AQI is relatively better, Delhi's <strong style="color:var(--red)">water quality becomes the #1 health threat</strong>. Monsoon runoff contaminates pipes, borewell levels drop causing TDS spikes, and chlorination increases — tripling waterborne disease risk vs winter. Most residents focus on air purifiers but neglect shower filters, which matter more in summer.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:14px">📌 Key Trend</h3>
+          <div class="insight">
+            <div class="insight-icon">📈</div>
+            <div class="insight-body">
+              <h4>Delhi AQI Worsening Year-on-Year</h4>
+              <p>Delhi's annual AQI has climbed from 154 (2020) → 162 (2021) → 174 (2022) → 164 (2023) → 178 (2024) → 179 (2026). A <strong style="color:var(--red)">+6.5% average worsening</strong> despite government interventions. Vehicle numbers and construction activity continue to outpace pollution control efforts.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════ RECOMMENDATIONS ══════════════════════ -->
+  <div class="section fade-up" id="sec-recs">
+    <div class="sec-head">
+      <h2>Personalized Recommendations</h2>
+      <p>Actionable steps to protect your health in Delhi's air and water environment.</p>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--cyan);margin-bottom:14px">☀️ Daily Air Actions</h3>
+        <ul class="rec-list">
+          <li>Check AQI before going outdoors — use AQI.in or SAFAR app. Target outdoor time when AQI &lt;75.</li>
+          <li>Wear N95/KN95 mask for outdoor activities when AQI exceeds 100 — surgical masks block only 30% of PM2.5.</li>
+          <li>Avoid outdoor exercise 7–10 AM and 6–9 PM — peak traffic hours spike localised PM2.5 by 40–60%.</li>
+          <li>Keep car cabin air filter clean — replace every 6 months in Delhi (vs 12 months manufacturer standard).</li>
+          <li>Shower immediately after returning from outdoors to remove particulate deposits from skin and hair.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:14px">🏠 Indoor Air Improvements</h3>
+        <ul class="rec-list">
+          <li>Run a HEPA air purifier in your bedroom and main living area — target rooms you spend 8+ hours in.</li>
+          <li>Place 2–3 indoor plants (Peace Lily, Snake Plant, Spider Plant) — proven to reduce VOCs by up to 25%.</li>
+          <li>Keep windows closed from 6–10 AM and during high-traffic or windy dusty periods.</li>
+          <li>Use exhaust fans while cooking — gas stoves produce NO₂ and PM2.5 indoors.</li>
+          <li>Vacuum with HEPA filter 2× per week; mop floors to capture settled dust vs resuspending it.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--red);margin-bottom:14px">💇 Hair Care for Hard Water</h3>
+        <ul class="rec-list">
+          <li>Install a shower filter with activated carbon + KDF media — removes chlorine, reduces calcium deposits.</li>
+          <li>Use a sulfate-free shampoo to avoid stripping already-stressed hair of its natural oils.</li>
+          <li>Do an apple cider vinegar rinse (1:2 ratio) weekly — dissolves mineral buildup and restores scalp pH.</li>
+          <li>Apply a chelating or clarifying shampoo once per week to remove accumulated mineral deposits.</li>
+          <li>Oil massage (coconut or castor) 1–2× weekly creates a barrier against hard-water mineral bonding.</li>
+          <li>Consider final rinse with filtered/RO water — even once weekly noticeably reduces breakage.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--orange);margin-bottom:14px">🧴 Skin Care Recommendations</h3>
+        <ul class="rec-list">
+          <li>Moisturise immediately after bathing (within 3 minutes) to lock in hydration before hard water dries skin.</li>
+          <li>Use a gentle, fragrance-free cleanser — harsh soaps worsen the stripping effect of high-TDS water.</li>
+          <li>Niacinamide serum helps repair barrier function disrupted by pollution + hard water combination.</li>
+          <li>Apply SPF 50 daily — pollution increases photo-sensitivity and UV damage significantly.</li>
+          <li>Antioxidant-rich diet (Vitamin C, E) combats free radicals introduced by PM2.5 exposure.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--green);margin-bottom:14px">💧 Water Quality Improvements</h3>
+        <ul class="rec-list">
+          <li>Install RO + UV + MTDS purifier for drinking water if TDS &gt;500 ppm in your area.</li>
+          <li>Use a shower/tap filter for bathing — specifically designed for Indian hard water (SF-15 or equivalent).</li>
+          <li>Check your area's TDS with a basic meter (₹200–500 online) — readings vary widely by colony.</li>
+          <li>During monsoon (July–Sept), increase purification: add a pre-filter sediment cartridge for extra turbidity.</li>
+          <li>Test borewell water annually if your building uses it — TDS can spike above 1000 ppm in outer Delhi.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:700;color:var(--yellow);margin-bottom:14px">🏃 Outdoor Activity Guidance</h3>
+        <ul class="rec-list">
+          <li>Best outdoor window: 10 AM–12 PM in summer when AQI tends to be lowest (convection disperses pollutants).</li>
+          <li>Run or cycle in parks, not arterial roads — roadside PM2.5 can be 3–5× higher than park levels.</li>
+          <li>On Severe AQI days (&gt;300, common Nov–Jan): skip outdoor exercise entirely, use indoor alternatives.</li>
+          <li>Post-exercise: rinse nasal passages with saline spray to remove trapped particulates.</li>
+          <li>Hydrate extra after outdoor exercise — pollution and heat accelerate dehydration in Delhi summers.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ── DATA ──
+const cities = [
+  { name:'Delhi',      aqi:91,  pm25:41, pm10:84, tds:500, no2:27, so2:5,  temp:33, hum:49, aqiCat:'Satisfactory', airScore:45, waterScore:35, envScore:44 },
+  { name:'Mumbai',     aqi:52,  pm25:18, pm10:38, tds:300, no2:18, so2:3,  temp:34, hum:60, aqiCat:'Good',         airScore:72, waterScore:58, envScore:66 },
+  { name:'Bangalore',  aqi:59,  pm25:20, pm10:42, tds:600, no2:22, so2:4,  temp:32, hum:52, aqiCat:'Good',         airScore:68, waterScore:28, envScore:52 },
+  { name:'Chennai',    aqi:81,  pm25:28, pm10:65, tds:900, no2:30, so2:6,  temp:39, hum:48, aqiCat:'Satisfactory', airScore:55, waterScore:18, envScore:40 },
+  { name:'Kolkata',    aqi:116, pm25:45, pm10:92, tds:280, no2:35, so2:8,  temp:35, hum:56, aqiCat:'Moderate',     airScore:35, waterScore:62, envScore:46 },
+  { name:'Hyderabad',  aqi:68,  pm25:24, pm10:55, tds:350, no2:25, so2:5,  temp:36, hum:42, aqiCat:'Satisfactory', airScore:62, waterScore:52, envScore:58 },
+  { name:'Pune',       aqi:60,  pm25:22, pm10:44, tds:400, no2:20, so2:4,  temp:35, hum:30, aqiCat:'Good',         airScore:67, waterScore:44, envScore:58 },
+  { name:'Ahmedabad',  aqi:60,  pm25:22, pm10:46, tds:450, no2:24, so2:6,  temp:36, hum:35, aqiCat:'Good',         airScore:66, waterScore:40, envScore:55 },
+];
+
+function aqiColor(v){
+  if(v<=50)  return '#00e676';
+  if(v<=100) return '#a5d6a7';
+  if(v<=200) return '#ffd740';
+  if(v<=300) return '#ff9100';
+  if(v<=400) return '#ff1744';
+  return '#b71c1c';
+}
+function aqiLabel(v){
+  if(v<=50)  return 'Good';
+  if(v<=100) return 'Satisfactory';
+  if(v<=200) return 'Moderate';
+  if(v<=300) return 'Poor';
+  if(v<=400) return 'Very Poor';
+  return 'Severe';
+}
+function scoreGrade(s){ return s>=80?'A':s>=65?'B':s>=50?'C':s>=35?'D':'F'; }
+
+// ── CHARTS ──
+let chartInstances = {};
+
+function destroyChart(id){ if(chartInstances[id]){ chartInstances[id].destroy(); delete chartInstances[id]; } }
+
+const chartDefaults = {
+  plugins:{ legend:{ labels:{ color:'#7a9ab8', font:{size:12} } } },
+  scales:{
+    x:{ ticks:{ color:'#7a9ab8' }, grid:{ color:'rgba(255,255,255,.04)' } },
+    y:{ ticks:{ color:'#7a9ab8' }, grid:{ color:'rgba(255,255,255,.06)' } }
+  }
+};
+
+function filteredCities(){
+  const maxAqi = parseInt(document.getElementById('aqiRange').value);
+  const risk   = document.getElementById('riskFilter').value;
+  return cities.filter(c=>{
+    if(c.aqi > maxAqi) return false;
+    if(risk === 'good'     && c.aqi > 100) return false;
+    if(risk === 'moderate' && (c.aqi <= 100 || c.aqi > 200)) return false;
+    if(risk === 'poor'     && c.aqi <= 200) return false;
+    return true;
+  });
+}
+
+function updateCharts(){
+  const fc = filteredCities();
+  const metric = document.getElementById('pollutantSel').value;
+  const labels = fc.map(c=>c.name);
+  const vals   = fc.map(c=>c[metric]);
+  const colors = fc.map(c=>aqiColor(c.aqi));
+  const borderColors = colors.map(c=>c);
+
+  destroyChart('aqiBar');
+  const ctx1 = document.getElementById('aqiBar');
+  chartInstances['aqiBar'] = new Chart(ctx1, {
+    type:'bar',
+    data:{ labels, datasets:[{
+      label: metric === 'aqi' ? 'AQI' : metric === 'pm25' ? 'PM2.5 µg/m³' : 'PM10 µg/m³',
+      data: vals,
+      backgroundColor: colors.map(c=>c+'44'),
+      borderColor: borderColors,
+      borderWidth: 2, borderRadius: 5
+    }]},
+    options:{ ...chartDefaults, responsive:true, maintainAspectRatio:false,
+      plugins:{ ...chartDefaults.plugins, tooltip:{ callbacks:{
+        label: ctx => `${ctx.dataset.label}: ${ctx.raw}`
+      }}}
+    }
+  });
+
+  // Doughnut by category
+  const cats = { Good:0, Satisfactory:0, Moderate:0, Poor:0, 'Very Poor':0, Severe:0 };
+  fc.forEach(c=>{ const l = aqiLabel(c.aqi); if(cats[l]!==undefined) cats[l]++; });
+  const catKeys = Object.keys(cats).filter(k=>cats[k]>0);
+  destroyChart('aqiDoughnut');
+  chartInstances['aqiDoughnut'] = new Chart(document.getElementById('aqiDoughnut'), {
+    type:'doughnut',
+    data:{ labels: catKeys, datasets:[{
+      data: catKeys.map(k=>cats[k]),
+      backgroundColor:['#00e67644','#a5d6a744','#ffd74044','#ff910044','#ff174444','#b71c1c44'],
+      borderColor:    ['#00e676',  '#a5d6a7',  '#ffd740',  '#ff9100',  '#ff1744',  '#b71c1c'],
+      borderWidth: 2
+    }]},
+    options:{ responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{ color:'#7a9ab8', font:{size:12}, padding:12 } } } }
+  });
+
+  // PM2.5
+  destroyChart('pm25Bar');
+  chartInstances['pm25Bar'] = new Chart(document.getElementById('pm25Bar'), {
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'PM2.5 µg/m³', data: fc.map(c=>c.pm25), backgroundColor: fc.map(c=>aqiColor(c.aqi)+'44'), borderColor: fc.map(c=>aqiColor(c.aqi)), borderWidth:2, borderRadius:5 },
+      { label:'WHO Safe (15)', data: fc.map(()=>15), type:'line', borderColor:'#00e67688', borderDash:[5,4], pointRadius:0, borderWidth:1.5 }
+    ]},
+    options:{ ...chartDefaults, responsive:true, maintainAspectRatio:false }
+  });
+
+  // PM10
+  destroyChart('pm10Bar');
+  chartInstances['pm10Bar'] = new Chart(document.getElementById('pm10Bar'), {
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'PM10 µg/m³', data: fc.map(c=>c.pm10), backgroundColor:'#7b2fff33', borderColor:'#7b2fff', borderWidth:2, borderRadius:5 },
+      { label:'WHO Safe (45)', data: fc.map(()=>45), type:'line', borderColor:'#00e67688', borderDash:[5,4], pointRadius:0, borderWidth:1.5 }
+    ]},
+    options:{ ...chartDefaults, responsive:true, maintainAspectRatio:false }
+  });
+
+  // Ranking bar
+  const sorted = [...fc].sort((a,b)=>b.envScore-a.envScore);
+  destroyChart('rankBar');
+  chartInstances['rankBar'] = new Chart(document.getElementById('rankBar'), {
+    type:'bar',
+    data:{ labels: sorted.map(c=>c.name), datasets:[{
+      label:'Environmental Score /100',
+      data: sorted.map(c=>c.envScore),
+      backgroundColor: sorted.map(c=>`hsl(${c.envScore*1.2},70%,50%)22`),
+      borderColor:     sorted.map(c=>`hsl(${c.envScore*1.2},70%,50%)`),
+      borderWidth:2, borderRadius:6
+    }]},
+    options:{ indexAxis:'y', ...chartDefaults, responsive:true, maintainAspectRatio:false,
+      scales:{ x:{ ...chartDefaults.scales.x, min:0, max:100 }, y:{ ...chartDefaults.scales.y } }
+    }
+  });
+}
+
+// ── CITY CARDS ──
+function renderCityCards(list){
+  const grid = document.getElementById('cityGrid');
+  grid.innerHTML = list.map(c=>{
+    const col = aqiColor(c.aqi);
+    const g = scoreGrade(c.envScore);
+    return `
+    <div class="card" style="border-color:${col}33">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700;color:#fff">${c.name}</h3>
+        <span class="aqi-badge" style="background:${col}18;border:1px solid ${col}44;color:${col}">
+          <span class="aqi-dot" style="background:${col}"></span>${aqiLabel(c.aqi)}
+        </span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px;text-align:center">
+        <div><div style="font-size:22px;font-weight:800;color:${col}">${c.aqi}</div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em">AQI</div></div>
+        <div><div style="font-size:22px;font-weight:800;color:#ff9100">${c.pm25}</div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em">PM2.5</div></div>
+        <div><div style="font-size:22px;font-weight:800;color:#7b2fff">${c.pm10}</div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em">PM10</div></div>
+      </div>
+      <div style="height:1px;background:var(--border);margin-bottom:14px"></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+        <div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Air Score</div><div style="font-size:18px;font-weight:700;color:hsl(${c.airScore*1.2},70%,55%)">${c.airScore}<span style="font-size:11px;color:var(--muted)">/100</span></div></div>
+        <div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Water Score</div><div style="font-size:18px;font-weight:700;color:hsl(${c.waterScore*1.2},70%,55%)">${c.waterScore}<span style="font-size:11px;color:var(--muted)">/100</span></div></div>
+        <div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Env Score</div><div style="font-size:18px;font-weight:700;color:hsl(${c.envScore*1.2},70%,55%)">${c.envScore}<span style="font-size:11px;color:var(--muted)">/100</span></div></div>
+        <div><div style="font-size:11px;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Grade</div><div style="font-size:22px;font-weight:900;color:hsl(${c.envScore*1.2},70%,55%)">${g}</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted)">💧 Water TDS: <strong style="color:${c.tds>500?'var(--red)':c.tds>300?'var(--yellow)':'var(--green)'}">${c.tds}+ ppm</strong> &nbsp;|&nbsp; 🌡 Temp: ${c.temp}°C &nbsp;|&nbsp; 💨 NO₂: ${c.no2} AQI</div>
+    </div>`;
+  }).join('');
+}
+
+function focusCity(val){
+  if(val === 'all') renderCityCards(cities);
+  else renderCityCards(cities.filter(c=>c.name===val));
+}
+function toggleCompare(val){
+  if(val==='on') renderCityCards(cities);
+}
+
+// ── HEALTH RISKS ──
+const airRisks = [
+  { label:'Lung Health',        risk:'High',     pct:75, icon:'🫁', note:'PM2.5 at 41 µg/m³ — 2.7× WHO limit' },
+  { label:'Sleep Quality',      risk:'Moderate', pct:50, icon:'😴', note:'Night pollution disrupts REM cycles' },
+  { label:'Energy Levels',      risk:'Moderate', pct:48, icon:'⚡', note:'Reduced oxygen efficiency' },
+  { label:'Exercise Performance',risk:'High',    pct:70, icon:'🏃', note:'Avoid high-intensity outdoors today' },
+  { label:'Long-term Risk',     risk:'High',     pct:80, icon:'⏳', note:'Annual avg 179 — serious chronic burden' },
+];
+const waterRisks = [
+  { label:'Hair Fall',       risk:'High',     pct:80, icon:'💇', note:'TDS 500+ ppm destroys cuticle structure' },
+  { label:'Hair Dryness',    risk:'High',     pct:78, icon:'🌵', note:'Calcium deposits strip moisture' },
+  { label:'Scalp Health',    risk:'High',     pct:72, icon:'🔬', note:'High chlorine disrupts scalp microbiome' },
+  { label:'Skin Dryness',    risk:'Moderate', pct:60, icon:'🧴', note:'Hard water + pollution combo' },
+  { label:'Acne/Breakouts',  risk:'Moderate', pct:50, icon:'😣', note:'Pore-clogging mineral deposits' },
+  { label:'Sensitive Skin',  risk:'High',     pct:70, icon:'🌸', note:'Pollution + hard water = barrier breakdown' },
+];
+
+function riskColor(r){ return r==='High'?'#ff1744':r==='Moderate'?'#ffd740':'#00e676'; }
+function riskEmoji(r){ return r==='High'?'🔴':r==='Moderate'?'🟡':'🟢'; }
+
+function renderRisks(data, elId){
+  const el = document.getElementById(elId);
+  el.innerHTML = data.map(d=>`
+    <div class="risk">
+      <span style="font-size:18px">${d.icon}</span>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span class="risk-label">${d.label}</span>
+          <span class="risk-val" style="color:${riskColor(d.risk)}">${riskEmoji(d.risk)} ${d.risk}</span>
+        </div>
+        <div class="risk-bar-wrap"><div class="risk-bar" style="width:${d.pct}%;background:${riskColor(d.risk)}"></div></div>
+        <div style="font-size:11px;color:var(--muted2);margin-top:3px">${d.note}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ── TABS ──
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    tab.classList.add('active');
+    const secId = 'sec-' + tab.dataset.tab;
+    const sec = document.getElementById(secId);
+    if(sec){ sec.classList.add('active'); sec.classList.remove('fade-up'); void sec.offsetWidth; sec.classList.add('fade-up'); }
+    if(tab.dataset.tab === 'charts') setTimeout(updateCharts, 50);
+  });
+});
+
+// ── INIT ──
+renderCityCards([cities[0]]); // Delhi default
+renderRisks(airRisks, 'airRisks');
+renderRisks(waterRisks, 'waterRisks');
+
+// Lazy load charts when tab opens
+const obs = new MutationObserver(()=>{
+  if(document.getElementById('sec-charts').classList.contains('active')) updateCharts();
+});
+
+// Pre-render charts after short delay in case user goes there
+setTimeout(()=>{ updateCharts(); }, 300);
+</script>
+</body>
+</html>
