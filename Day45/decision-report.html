@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decision Report — AI/GenAI Focus vs DSA</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #0f0f14;
+    --bg-card: #1a1a24;
+    --bg-card-alt: #1e1e2e;
+    --text-primary: #f0f0f5;
+    --text-secondary: #8888a0;
+    --accent-green: #34d399;
+    --accent-red: #f87171;
+    --accent-blue: #60a5fa;
+    --accent-gold: #fbbf24;
+    --accent-purple: #a78bfa;
+    --border-subtle: rgba(255,255,255,0.06);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+    padding: 0 0 40px;
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  header.banner {
+    width: 100%;
+    padding: 40px 20px 28px;
+    text-align: center;
+    background: linear-gradient(180deg, #16161f 0%, var(--bg-main) 100%);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  header.banner h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    letter-spacing: -0.01em;
+  }
+
+  header.banner .subtitle {
+    font-size: 16px;
+    color: var(--text-secondary);
+    margin: 0 0 6px;
+  }
+
+  header.banner .date {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+
+  .gradient-line {
+    height: 3px;
+    width: 100%;
+    margin-top: 24px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple), var(--accent-gold));
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px;
+    padding: 28px;
+    margin-top: 28px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+    border-left: 4px solid var(--accent-blue);
+    transition: transform 0.2s ease;
+  }
+  .card:hover { transform: translateY(-2px); }
+
+  .card.green { border-left-color: var(--accent-green); }
+  .card.purple { border-left-color: var(--accent-purple); }
+  .card.red { border-left-color: var(--accent-red); }
+  .card.gold {
+    border-left-color: var(--accent-gold);
+    background: var(--bg-card-alt);
+    padding: 32px;
+    box-shadow: 0 0 20px rgba(251,191,36,0.15), 0 4px 24px rgba(0,0,0,0.3);
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 18px;
+  }
+  .section-title.blue { color: var(--accent-blue); }
+  .section-title.green { color: var(--accent-green); }
+  .section-title.purple { color: var(--accent-purple); }
+  .section-title.red { color: var(--accent-red); }
+  .section-title.gold { color: var(--accent-gold); }
+
+  p, li { font-size: 15px; line-height: 1.7; color: var(--text-primary); }
+
+  .label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    margin: 16px 0 6px;
+  }
+  .label:first-child { margin-top: 0; }
+
+  .option-card {
+    background: var(--bg-card-alt);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid var(--border-subtle);
+  }
+  .option-card:last-child { margin-bottom: 0; }
+  .option-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .option-name.a { color: var(--accent-blue); }
+  .option-name.b { color: var(--accent-green); }
+  .option-name.c { color: var(--accent-purple); }
+
+  ul.clean { margin: 0; padding-left: 18px; }
+  ul.clean li { margin-bottom: 6px; }
+
+  .matrix-row { margin-bottom: 18px; }
+  .matrix-row .dim-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+  }
+  .bar-line { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .bar-opt-tag {
+    width: 26px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+  }
+  .bar-container {
+    flex: 1;
+    height: 28px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 8px;
+    color: white;
+    font-weight: 700;
+    font-size: 12px;
+    width: 0%;
+    animation: growBar 0.8s ease-out forwards;
+  }
+  .bar-a { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+  .bar-b { background: linear-gradient(90deg, #34d399, #10b981); }
+  .bar-c { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+
+  @keyframes growBar {
+    from { width: 0%; }
+    to { width: var(--target-width); }
+  }
+
+  .total-row {
+    margin-top: 20px;
+    padding: 14px 16px;
+    background: rgba(251,191,36,0.08);
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .total-row .win { color: var(--accent-gold); }
+
+  .premortem-block { margin-bottom: 20px; }
+  .premortem-block:last-child { margin-bottom: 0; }
+
+  .plan-row {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    font-size: 14px;
+  }
+  .plan-row:last-child { border-bottom: none; }
+  .plan-day { color: var(--accent-green); font-weight: 700; flex-shrink: 0; width: 90px; }
+
+  .verdict-winner {
+    font-size: 30px;
+    font-weight: 800;
+    color: var(--accent-gold);
+    margin: 0 0 12px;
+  }
+  .hard-truth {
+    font-style: italic;
+    color: var(--text-secondary);
+    margin-top: 16px;
+    font-size: 14px;
+  }
+
+  .share-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .mini-card {
+    flex: 1 1 190px;
+    background: var(--bg-card-alt);
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    font-size: 13px;
+  }
+  .mini-card h4 {
+    margin: 0 0 10px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent-gold);
+  }
+  .watermark {
+    margin-top: 14px;
+    font-size: 10px;
+    color: var(--text-secondary);
+    opacity: 0.6;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin-top: 40px;
+  }
+
+  @media (max-width: 600px) {
+    .card { padding: 20px; border-radius: 14px; }
+    .card.gold { padding: 24px; }
+    .section-title { font-size: 18px; }
+    .share-row { flex-direction: column; }
+    .verdict-winner { font-size: 24px; }
+    .bar-opt-tag { width: 22px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="banner">
+  <h1>DECISION REPORT</h1>
+  <p class="subtitle">AI/GenAI Focus vs. DSA vs. Balanced Path</p>
+  <p class="date">Generated July 26, 2026</p>
+  <div class="gradient-line"></div>
+</header>
+
+<div class="wrap">
+
+  <!-- SECTION 1 -->
+  <div class="card blue">
+    <div class="section-title blue">The Real Decision</div>
+    <p>The real choice is where to point six to twelve months of limited beginner time: deep into AI/GenAI projects, into DSA prep, or split across both.</p>
+    <p>The actual trade-off is depth vs. hedging — going all-in on AI builds a stronger, faster portfolio, but skipping DSA risks being screened out of internships that test it.</p>
+    <p>It's emotionally hard because your gut already knows the answer, but fear of "wasting months on the wrong thing" is pulling you toward hedging instead of committing.</p>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="card green">
+    <div class="section-title green">The Case For Each Option</div>
+
+    <div class="option-card">
+      <div class="option-name a">Option A — Full AI/GenAI Focus</div>
+      <div class="label">Strongest Case</div>
+      <p>Fastest route to a real, shippable portfolio — which is what you said you want, and it matches your gut instinct.</p>
+      <div class="label">Hidden Upside</div>
+      <p>Depth in one lane compounds — you'll actually finish and ship things, instead of spreading thin.</p>
+      <div class="label">Biggest Weakness</div>
+      <p>Many internship screens still gate on DSA-style coding rounds — skipping it entirely can knock you out before your portfolio is even seen.</p>
+      <p class="label">Best if you value:</p>
+      <p>Speed to a strong portfolio over broad interview-readiness.</p>
+    </div>
+
+    <div class="option-card">
+      <div class="option-name b">Option B — DSA Alongside AI</div>
+      <div class="label">Strongest Case</div>
+      <p>Keeps your interview-readiness alive while you still build, instead of betting everything on one lane.</p>
+      <div class="label">Hidden Upside</div>
+      <p>If AI/GenAI internship rounds do include DSA, you won't be caught off guard.</p>
+      <div class="label">Biggest Weakness</div>
+      <p>Splits your limited time — you said yourself you're a beginner with limited hours, so two fronts at once slows portfolio depth.</p>
+      <p class="label">Best if you value:</p>
+      <p>Risk reduction over speed.</p>
+    </div>
+
+    <div class="option-card">
+      <div class="option-name c">Option C — Balance Both Equally</div>
+      <div class="label">Strongest Case</div>
+      <p>Feels like the "safe middle" — nothing is fully ignored.</p>
+      <div class="label">Hidden Upside</div>
+      <p>None of your stated goals is actually about balance — this option mainly exists to reduce anxiety, not to serve your goal.</p>
+      <div class="label">Biggest Weakness</div>
+      <p>With limited time and beginner status, true 50/50 balance usually means neither AI projects nor DSA gets strong enough — the classic "master nothing" trap.</p>
+      <p class="label">Best if you value:</p>
+      <p>Feeling like you're covering everything, over actually getting good at one thing.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 3 -->
+  <div class="card purple">
+    <div class="section-title purple">Assumption Buster</div>
+    <div class="label">Assumptions You May Be Making</div>
+    <ul class="clean">
+      <li>That "DSA" and "AI/GenAI projects" are mutually exclusive time buckets, rather than DSA being something you can slot in lightly later.</li>
+      <li>That every AI/GenAI internship requires heavy DSA — this varies a lot by company size and role, and you haven't confirmed it for your specific targets.</li>
+      <li>That balancing both means doing them at full intensity simultaneously, rather than sequencing them.</li>
+    </ul>
+    <div class="label">Biases At Play</div>
+    <ul class="clean">
+      <li><strong>Loss aversion</strong> — the fear of "falling behind others" is louder than the upside of shipping real projects, even though you already said projects are your goal.</li>
+      <li><strong>Status quo / hedging bias</strong> — "balance" feels safer emotionally, but you haven't shown it's actually safer for your stated 6-12 month goal.</li>
+    </ul>
+    <div class="label">What You're Definitely Ignoring</div>
+    <p>You haven't checked what your actual target internships require — you're deciding in the abstract instead of against real job postings.</p>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="card blue">
+    <div class="section-title blue">Decision Matrix</div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Life/Career Upside</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:90%; animation-delay:0.1s;">9</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:60%; animation-delay:0.2s;">6</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:50%; animation-delay:0.3s;">5</div></div></div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Financial Safety</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:60%; animation-delay:0.1s;">6</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:60%; animation-delay:0.2s;">6</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:60%; animation-delay:0.3s;">6</div></div></div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Growth & Learning</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:90%; animation-delay:0.1s;">9</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:60%; animation-delay:0.2s;">6</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:50%; animation-delay:0.3s;">5</div></div></div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Stress Level (10 = low stress)</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:80%; animation-delay:0.1s;">8</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:40%; animation-delay:0.2s;">4</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:30%; animation-delay:0.3s;">3</div></div></div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Reversibility (10 = easy to undo)</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:80%; animation-delay:0.1s;">8</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:80%; animation-delay:0.2s;">8</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:80%; animation-delay:0.3s;">8</div></div></div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Long-term Alignment</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:90%; animation-delay:0.1s;">9</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:60%; animation-delay:0.2s;">6</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:40%; animation-delay:0.3s;">4</div></div></div>
+    </div>
+
+    <div class="matrix-row">
+      <div class="dim-label">Regret Risk (10 = low regret)</div>
+      <div class="bar-line"><span class="bar-opt-tag">A</span><div class="bar-container"><div class="bar-fill bar-a" style="--target-width:70%; animation-delay:0.1s;">7</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">B</span><div class="bar-container"><div class="bar-fill bar-b" style="--target-width:60%; animation-delay:0.2s;">6</div></div></div>
+      <div class="bar-line"><span class="bar-opt-tag">C</span><div class="bar-container"><div class="bar-fill bar-c" style="--target-width:40%; animation-delay:0.3s;">4</div></div></div>
+    </div>
+
+    <div class="total-row">
+      <span>Option A Total</span><span class="win">56 / 70</span>
+    </div>
+    <div class="total-row" style="background:rgba(255,255,255,0.03); margin-top:8px;">
+      <span>Option B Total</span><span>46 / 70</span>
+    </div>
+    <div class="total-row" style="background:rgba(255,255,255,0.03); margin-top:8px;">
+      <span>Option C Total</span><span>35 / 70</span>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="card red">
+    <div class="section-title red">Premortem</div>
+
+    <div class="premortem-block">
+      <div class="option-name a">If Option A fails (12 months from now)</div>
+      <div class="label">3 Reasons It Failed</div>
+      <ul class="clean">
+        <li>Projects stayed shallow or unfinished — shipped nothing that stood out.</li>
+        <li>Applied to roles that turned out to require DSA rounds you weren't ready for.</li>
+        <li>Momentum died without a clear roadmap or milestones to check progress against.</li>
+      </ul>
+      <div class="label">Early Warning Sign</div>
+      <p>Three months in, you have no completed, shipped project — only half-built ones.</p>
+      <div class="label">Prevention Action</div>
+      <p>Set a hard "ship it" deadline for your first project within 30 days, no matter how small.</p>
+    </div>
+
+    <div class="premortem-block">
+      <div class="option-name b">If Option B fails (12 months from now)</div>
+      <div class="label">3 Reasons It Failed</div>
+      <ul class="clean">
+        <li>Split focus meant your portfolio never got strong enough to stand out.</li>
+        <li>DSA prep stayed surface-level too, since neither track got full attention.</li>
+        <li>You spent the year "preparing" instead of building a track record.</li>
+      </ul>
+      <div class="label">Early Warning Sign</div>
+      <p>You're 3 months in with no finished AI project AND no measurable DSA milestone (e.g., problems solved).</p>
+      <div class="label">Prevention Action</div>
+      <p>Time-box DSA to a small fixed weekly slot so it never eats into core project-building time.</p>
+    </div>
+  </div>
+
+  <!-- SECTION 6 -->
+  <div class="card green">
+    <div class="section-title green">7-Day Test Plan</div>
+    <div class="plan-row"><span class="plan-day">Day 1-2</span><span>Shortlist 8-10 target AI/GenAI internship postings and note which ones actually require DSA rounds.</span></div>
+    <div class="plan-row"><span class="plan-day">Day 3-4</span><span>Run one small experiment: timebox a single day fully on an AI project and see how much real progress you make without DSA in the mix.</span></div>
+    <div class="plan-row"><span class="plan-day">Day 5-6</span><span>Have one conversation — message a founder, senior student, or mentor who's hired/been hired for AI internships and ask if DSA came up.</span></div>
+    <div class="plan-row"><span class="plan-day">Day 7</span><span>Decide: if 6+ of your shortlisted postings skip DSA, commit to Option A. If most require it, shift toward Option B.</span></div>
+  </div>
+
+  <!-- SECTION 7 -->
+  <div class="card gold">
+    <div class="section-title gold">The Verdict</div>
+    <div class="verdict-winner">Option A — Full AI/GenAI Focus</div>
+    <p>It wins because it matches both your goal (an impressive portfolio) and your gut instinct, and you already confirmed the decision is reversible — you can pivot to DSA in a few months if needed.</p>
+    <p>Reversibility is exactly why the "safe" middle path (Option C) isn't actually safer — you're paying a real cost (diluted portfolio) to guard against a risk you can still correct for later.</p>
+    <p class="label">What Could Flip It</p>
+    <p>If your Day 1-2 research shows most of your target internships gate hard on DSA rounds, shift toward Option B immediately — don't wait out the 6 months.</p>
+    <p class="hard-truth">The hard truth: you're not actually stuck between AI and DSA — you're stuck between commitment and the fear of committing wrong, and only shipping something will tell you which fear was real.</p>
+  </div>
+
+  <!-- SECTION 8 -->
+  <div class="card gold">
+    <div class="section-title gold">Shareable Cards</div>
+    <div class="share-row">
+      <div class="mini-card">
+        <h4>Matrix Summary</h4>
+        <p>Option A: <strong>56/70</strong><br>Option B: <strong>46/70</strong><br>Option C: <strong>35/70</strong></p>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+      <div class="mini-card">
+        <h4>Verdict</h4>
+        <p><strong>Option A wins.</strong><br>It matches your goal, your gut, and it's reversible if wrong.</p>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+      <div class="mini-card">
+        <h4>LinkedIn Hook</h4>
+        <p><strong>"I almost split my focus. Here's why I didn't."</strong><br>Chose depth over hedging — going all-in on AI/GenAI projects for the next 6 months instead of splitting time with DSA.<br>Reversible bets beat perfect plans.<br><em>Follow my 60-Day AI Challenge →</em></p>
+        <div class="watermark">Built with Claude AI</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>Built with Claude AI | ABTalks 60-Day Challenge</footer>
+
+</body>
+</html>
